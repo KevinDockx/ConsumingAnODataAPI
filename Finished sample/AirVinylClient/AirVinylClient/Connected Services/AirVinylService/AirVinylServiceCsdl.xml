@@ -1,0 +1,129 @@
+<edmx:Edmx Version="4.0" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+  <edmx:DataServices>
+    <Schema Namespace="AirVinyl" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <EntityType Name="Person">
+        <Key>
+          <PropertyRef Name="PersonId" />
+        </Key>
+        <Property Name="PersonId" Type="Edm.Int32" Nullable="false" />
+        <Property Name="Email" Type="Edm.String" />
+        <Property Name="FirstName" Type="Edm.String" Nullable="false" />
+        <Property Name="LastName" Type="Edm.String" Nullable="false" />
+        <Property Name="DateOfBirth" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="Gender" Type="AirVinyl.Gender" Nullable="false" />
+        <Property Name="NumberOfRecordsOnWishList" Type="Edm.Int32" Nullable="false" />
+        <Property Name="AmountOfCashToSpend" Type="Edm.Decimal" Nullable="false" />
+        <NavigationProperty Name="VinylRecords" Type="Collection(AirVinyl.VinylRecord)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="RecordStore">
+        <Key>
+          <PropertyRef Name="RecordStoreId" />
+        </Key>
+        <Property Name="RecordStoreId" Type="Edm.Int32" Nullable="false" />
+        <Property Name="Name" Type="Edm.String" Nullable="false" />
+        <Property Name="StoreAddress" Type="AirVinyl.Address" />
+        <Property Name="Tags" Type="Collection(Edm.String)" />
+        <NavigationProperty Name="Ratings" Type="Collection(AirVinyl.Rating)" />
+      </EntityType>
+      <EntityType Name="VinylRecord" OpenType="true">
+        <Key>
+          <PropertyRef Name="VinylRecordId" />
+        </Key>
+        <Property Name="VinylRecordId" Type="Edm.Int32" Nullable="false" />
+        <Property Name="Title" Type="Edm.String" Nullable="false" />
+        <Property Name="Artist" Type="Edm.String" Nullable="false" />
+        <Property Name="CatalogNumber" Type="Edm.String" />
+        <Property Name="Year" Type="Edm.Int32" />
+        <Property Name="PressingDetailId" Type="Edm.Int32" />
+        <Property Name="PersonId" Type="Edm.Int32" />
+        <Property Name="DynamicVinylRecordProperties" Type="Collection(AirVinyl.DynamicProperty)" />
+        <NavigationProperty Name="PressingDetail" Type="AirVinyl.PressingDetail">
+          <ReferentialConstraint Property="PressingDetailId" ReferencedProperty="PressingDetailId" />
+        </NavigationProperty>
+        <NavigationProperty Name="Person" Type="AirVinyl.Person">
+          <ReferentialConstraint Property="PersonId" ReferencedProperty="PersonId" />
+        </NavigationProperty>
+      </EntityType>
+      <EntityType Name="PressingDetail">
+        <Key>
+          <PropertyRef Name="PressingDetailId" />
+        </Key>
+        <Property Name="PressingDetailId" Type="Edm.Int32" Nullable="false" />
+        <Property Name="Grams" Type="Edm.Int32" Nullable="false" />
+        <Property Name="Inches" Type="Edm.Int32" Nullable="false" />
+        <Property Name="Description" Type="Edm.String" Nullable="false" />
+      </EntityType>
+      <ComplexType Name="DynamicProperty">
+        <Property Name="Key" Type="Edm.String" />
+        <Property Name="SerializedValue" Type="Edm.String" />
+        <Property Name="VinylRecordId" Type="Edm.Int32" Nullable="false" />
+        <NavigationProperty Name="VinylRecord" Type="AirVinyl.VinylRecord" />
+      </ComplexType>
+      <ComplexType Name="Address">
+        <Property Name="Street" Type="Edm.String" />
+        <Property Name="City" Type="Edm.String" />
+        <Property Name="PostalCode" Type="Edm.String" />
+        <Property Name="Country" Type="Edm.String" />
+        <Property Name="RecordStoreId" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
+      <EntityType Name="Rating">
+        <Key>
+          <PropertyRef Name="RatingId" />
+        </Key>
+        <Property Name="RatingId" Type="Edm.Int32" Nullable="false" />
+        <Property Name="Value" Type="Edm.Int32" Nullable="false" />
+        <Property Name="RatedByPersonId" Type="Edm.Int32" Nullable="false" />
+        <Property Name="RecordStoreId" Type="Edm.Int32" Nullable="false" />
+        <NavigationProperty Name="RatedBy" Type="AirVinyl.Person" Nullable="false" />
+      </EntityType>
+      <EntityType Name="SpecializedRecordStore" BaseType="AirVinyl.RecordStore">
+        <Property Name="Specialization" Type="Edm.String" />
+      </EntityType>
+      <EnumType Name="Gender">
+        <Member Name="Female" Value="0" />
+        <Member Name="Male" Value="1" />
+        <Member Name="Other" Value="2" />
+        <Member Name="Unspecified" Value="3" />
+      </EnumType>
+      <EntityContainer Name="AirVinylContainer">
+        <EntitySet Name="People" EntityType="AirVinyl.Person" />
+        <EntitySet Name="RecordStores" EntityType="AirVinyl.RecordStore" />
+        <Singleton Name="Tim" Type="AirVinyl.Person" />
+        <FunctionImport Name="GetHighRatedRecordStores" Function="AirVinyl.Functions.GetHighRatedRecordStores" EntitySet="RecordStores" IncludeInServiceDocument="true" />
+        <ActionImport Name="RemoveRecordStoreRatings" Action="AirVinyl.Actions.RemoveRecordStoreRatings" />
+      </EntityContainer>
+    </Schema>
+    <Schema Namespace="AirVinyl.Functions" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <Function Name="IsHighRated" IsBound="true">
+        <Parameter Name="bindingParameter" Type="AirVinyl.RecordStore" />
+        <Parameter Name="minimumRating" Type="Edm.Int32" Nullable="false" />
+        <ReturnType Type="Edm.Boolean" Nullable="false" />
+      </Function>
+      <Function Name="AreRatedBy" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(AirVinyl.RecordStore)" />
+        <Parameter Name="personIds" Type="Collection(Edm.Int32)" Nullable="false" />
+        <ReturnType Type="Collection(AirVinyl.RecordStore)" />
+      </Function>
+      <Function Name="GetHighRatedRecordStores">
+        <Parameter Name="minimumRating" Type="Edm.Int32" Nullable="false" />
+        <ReturnType Type="Collection(AirVinyl.RecordStore)" />
+      </Function>
+    </Schema>
+    <Schema Namespace="AirVinyl.Actions" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <Action Name="Rate" IsBound="true">
+        <Parameter Name="bindingParameter" Type="AirVinyl.RecordStore" />
+        <Parameter Name="rating" Type="Edm.Int32" Nullable="false" />
+        <Parameter Name="personId" Type="Edm.Int32" Nullable="false" />
+        <ReturnType Type="Edm.Boolean" Nullable="false" />
+      </Action>
+      <Action Name="RemoveRatings" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(AirVinyl.RecordStore)" />
+        <Parameter Name="personId" Type="Edm.Int32" Nullable="false" />
+        <ReturnType Type="Edm.Boolean" Nullable="false" />
+      </Action>
+      <Action Name="RemoveRecordStoreRatings">
+        <Parameter Name="personId" Type="Edm.Int32" Nullable="false" />
+      </Action>
+    </Schema>
+  </edmx:DataServices>
+</edmx:Edmx>

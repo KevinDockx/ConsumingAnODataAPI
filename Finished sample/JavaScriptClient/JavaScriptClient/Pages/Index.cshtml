@@ -1,0 +1,119 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "AirVinyl OData Client";
+}
+
+<script>
+    function LoadData() {
+        var request = {
+            requestUri: "https://localhost:5001/odata/People?$expand=VinylRecords",
+            method: "GET",
+            headers: { Accept: "application/json" }
+        };
+
+        odatajs.oData.request(
+            request,
+            function (data, response) {
+                var responseData = data.value;
+                var formattedResults = "";
+                responseData.forEach(function (entry) {
+                    formattedResults = formattedResults.concat(JSON.stringify(entry));
+                });
+
+                var resultsDiv = document.getElementById("results");
+                resultsDiv.innerHTML = formattedResults;
+            },
+            function (err) {
+                alert("Something went wrong");
+            }
+        );
+    }
+
+    function CreatePerson() {
+
+        var newPerson = {
+            FirstName: "Emma",
+            LastName: "Smith",
+            Email: "emma.smith@someprovider.com",
+            Gender: "Female",
+            DateOfBirth: "1940-01-30",
+            NumberOfRecordsOnWishList: 10
+        }
+
+        var request = {
+            requestUri: "https://localhost:5001/odata/People",
+            method: "POST",
+            headers: { Accept: "application/json", "Content-Type": "application/json" },
+            data: newPerson
+        };
+
+        odatajs.oData.request(
+            request,
+            function (data, response) {
+                var resultsDiv = document.getElementById("results");                resultsDiv.innerHTML = JSON.stringify(data);
+            },
+            function (err) {
+                alert("Something went wrong.");
+            }
+        );
+    }
+
+    function UpdatePerson() {
+
+        var changeSetForPatch = {
+            FirstName: "Violet"
+        }
+        var request = {
+            requestUri: "https://localhost:5001/odata/People(24)",
+            method: "PATCH",
+            headers: { Accept: "application/json", "Content-Type": "application/json" },
+            data: changeSetForPatch
+        };
+
+        odatajs.oData.request(
+            request,
+            function (data, response) {
+                // there is no response data, as we should get back a 204 No Content
+                var resultsDiv = document.getElementById("results");
+                resultsDiv.innerHTML = "Update successful";
+            },
+            function (err) {
+                alert("Something went wrong.");
+            }
+        );
+    }
+
+    function DeletePerson() {
+
+        var request = {
+            requestUri: "https://localhost:5001/odata/People(24)",
+            method: "DELETE",
+            headers: { Accept: "application/json" }
+        };
+
+        odatajs.oData.request(
+            request,
+            function (data, response) {
+                // there is no response data, as we should get back a 204 No Content
+                var resultsDiv = document.getElementById("results");
+                resultsDiv.innerHTML = "Delete successful";
+            },
+            function (err) {
+                alert("Something went wrong.");
+            }
+        );
+    }
+</script>
+
+<div class="text-center">
+    <h1 class="display-4">AirVinyl OData Client</h1>
+
+    <button onclick="LoadData()">GET</button>
+    <button onclick="CreatePerson()">POST</button>
+    <button onclick="UpdatePerson()">PATCH</button>
+    <button onclick="DeletePerson()">DELETE</button>
+
+    <div id="results"></div>
+
+</div>
